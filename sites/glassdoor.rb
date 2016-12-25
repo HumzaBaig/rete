@@ -4,7 +4,6 @@
 
 require_relative "../modules/selenium.rb"
 require_relative "../modules/io.rb"
-require "byebug"
 
 include IOStream
 include Selenium
@@ -26,7 +25,7 @@ def glassdoor_signin
 
   sleep(1)
 
-  email, password = IOStream::input_glassdoor_login
+  email, password = IOStream::input_login
 
   email_input = DRIVER.find_element(id: 'signInUsername')
   email_input.send_keys(email)

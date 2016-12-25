@@ -50,7 +50,7 @@ module IOStream
     user_keywords.join("\n")
   end
 
-  def input_glassdoor_login
+  def input_login
     if File.file?('user_info/login_info.txt')
       login_credentials = File.readlines('user_info/login_info.txt')
       email = login_credentials[0]
