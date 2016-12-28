@@ -11,21 +11,23 @@ include Selenium
 DRIVER = Selenium::DRIVER
 WAIT = Selenium::WebDriver::Wait.new(timeout: 60)
 
+FINAL_COUNT = IOStream::input_application_count
+
 def handle_failure(err)
   puts "Something went wrong\n"
 end
 
-def closeBrowser
+def close_browser
   DRIVER.quit
 end
 
-def glassdoor_signin
+def glassdoor_signin(folder_name)
   signin_modal = DRIVER.find_element(css: 'span.signin.acctMenu')
   signin_modal.click
 
   sleep(1)
 
-  email, password = IOStream::input_user_info
+  email, password = IOStream::input_user_info(folder_name)
 
   email_input = DRIVER.find_element(id: 'signInUsername')
   email_input.send_keys(email)
@@ -45,7 +47,7 @@ def search_jobs
 
   location_input = DRIVER.find_element(id: "LocationSearch")
   location_input.clear
-  location_input.send_keys("San Francisco, CA")
+  location_input.send_keys(location)
 
   position_input = DRIVER.find_element(id: "KeywordSearch")
   position_input.send_keys(position)
@@ -86,18 +88,22 @@ def get_job_info
     ez_apply_button.click
 
     sleep(1)
-    apply
+    application_count = apply(folder_name, application_count)
   end
 
-  # moves to next page if it reaches end of listings
-  next_page_button = DRIVER.find_element(class: 'next')
-  next_page_button.click
-  get_job_info
+  # moves to next page if it reaches end of listings AND final count not reached
+  if application_count < FINAL_COUNT
+    next_page_button = DRIVER.find_element(class: 'next')
+    next_page_button.click
+    get_job_info(folder_name)
+  end
 end
 
-def apply
-  name, email = IOStream::input_user_info
-  coverletter = IOStream::input_coverletter
+def apply(folder_name, current_count)
+  current_count += 1
+
+  name, email = IOStream::input_user_info(folder_name)
+  coverletter = IOStream::input_coverletter(folder_name)
 
   name_input = DRIVER.find_element(id: 'ApplicantName')
   email_input = DRIVER.find_element(id: 'ApplicantEmail')
@@ -106,15 +112,18 @@ def apply
   # Fills out application form
   name_input.clear
   name_input.send_keys(name)
+  sleep(rand(1..3))
   email_input.clear
   email_input.send_keys(email)
+  sleep(rand(1..3))
   coverletter_input.clear
   coverletter_input.send_keys(coverletter)
+  sleep(rand(1..3))
 
   # Select resume to send
   resume_select = DRIVER.find_element(id: "ExistingResumeSelectBoxIt")
   resume_select.click
-  sleep(1)
+  sleep(7..12)
   resume_file = DRIVER.find_element(
     xpath: '//*[@id="ExistingResumeSelectBoxItOptions"]/li[2]'
   )
@@ -122,14 +131,25 @@ def apply
 
   # This line will submit the application
   DRIVER.find_element(id: 'SubmitBtn').click
+
+  current_count #return updated count
+end
+
+def completion_message
+  puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+  puts "  #{FINAL_COUNT} applications completed!"
+  puts "   Please check your inbox for proof."
+  puts "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 end
 
 DRIVER.get("https://www.glassdoor.com/index.htm")
 
 sleep(10)
-glassdoor_signin
+user = IOStream::create_folder
+glassdoor_signin(user)
 sleep(1)
 search_jobs.click
 sleep(1)
-get_job_info
-sleep(90000)
+get_job_info(user)
+completion_message
+close_browser

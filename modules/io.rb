@@ -85,6 +85,15 @@ module IOStream
     blocked_keywords.join("\n")
   end
 
+  def input_application_count
+    puts "Please enter the number of applications to apply for"
+    print ">> ".chomp
+
+    final_count = gets.chomp!
+
+    final_count
+  end
+
   def input_user_info(folder_name)
     if File.file?("#{folder_name}/login_info.txt")
       login_credentials = File.readlines("#{folder_name}/login_info.txt")
