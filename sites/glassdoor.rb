@@ -25,7 +25,7 @@ def glassdoor_signin
 
   sleep(1)
 
-  email, password = IOStream::input_login
+  email, password = IOStream::input_user_info
 
   email_input = DRIVER.find_element(id: 'signInUsername')
   email_input.send_keys(email)
@@ -96,7 +96,7 @@ def get_job_info
 end
 
 def apply
-  name, email = IOStream::input_name_email
+  name, email = IOStream::input_user_info
   coverletter = IOStream::input_coverletter
 
   name_input = DRIVER.find_element(id: 'ApplicantName')

@@ -1,23 +1,30 @@
 module IOStream
 
-  def input_sites
-    system "clear"
-    puts "Please enter a keyword from the following sites [Glassdoor]"
+  def create_folder #create folder holding all of the user's information
+    puts "Please enter the applicant's first and last name with an underscore connecting them"
+    puts "[ex. John_Doe]"
     print ">> ".chomp
 
-    user_site_choice = gets.chomp!.capitalize!
+    full_name = gets.chomp!
 
-    while user_site_choice != "Glassdoor"
-      puts "Invalid choice"
-      puts "Please enter a keyword from the following sites [Glassdoor]"
-      print ">> ".chomp
+    puts "Please enter the applicant's zipcode"
+    puts "[ex. 77379]"
+    print ">> ".chomp
 
-      user_site_choice = gets.chomp!.capitalize!
+    zipcode = gets.chomp!
+
+    if Dir.exist?("/#{full_name + zipcode}")
+      puts "There is already a user with that name"
+    else
+      Dir.mkdir("/#{full_name + zipcode}")
+      puts "folder creation successful"
     end
+
+    full_name + zipcode
   end
 
-  def input_positions
-    puts "Please enter a position [ex. Software Engineer, Front-end, Back-end, Full-stack]"
+  def input_position #return inputted position
+    puts "Please enter a position [ex. Software Engineer, Consultant, etc.]"
     print ">> ".chomp
 
     user_position_choice = gets.chomp!
@@ -25,8 +32,8 @@ module IOStream
     user_position_choice
   end
 
-  def input_locations
-    puts "Please enter a location [ex. San Francisco CA, Los Angeles CA]"
+  def input_location #return inputted location
+    puts "Please enter a location [ex. San Francisco CA, Texas, United Kingdom]"
     print ">> ".chomp
 
     user_location_choice = gets.chomp!
@@ -34,36 +41,64 @@ module IOStream
     user_location_choice
   end
 
-  def input_keywords
-    puts "Please enter specific keywords [ex. Ruby, Python, Leadership]"
+  def input_keywords #takes in, saves, and returns desired keywords
+    puts "Are there any specific keywords you'd like to search for?"
+    puts "[ex. yes, no]"
+    print ">> ".chomp
+
+    keywords_decision = gets.chomp!
+
+    if (keywords_decision)
+      puts "Please enter specific keywords [ex. Ruby, Python, Leadership]"
+      puts "Type 'done' when you are finished to exit the prompt"
+
+      keywords = []
+
+      while (true)
+        print ">> ".chomp
+        current_keyword = gets.chomp!
+        break if current_keyword.downcase == "done"
+        keywords << current_keyword
+      end
+
+      keywords.join("\n") #returns keywords on different lines
+    else
+      nil #returns nil if no desired keywords
+    end
+  end
+
+  def input_blocked_keywords #takes in, saves, and returns blocked keywords
+    puts "Please enter specific keywords you'd like us to avoid"
+    puts "Anything you would like to avoid"
+    puts "[ex. Microsoft, Senior, PHP, Los Angeles]"
     puts "Type 'done' when you are finished to exit the prompt"
 
-    user_keywords = []
+    blocked_keywords = []
 
     while (true)
       print ">> ".chomp
       current_keyword = gets.chomp!
       break if current_keyword.downcase == "done"
-      user_keywords << current_keyword
+      blocked_keywords << current_keyword
     end
 
-    user_keywords.join("\n")
+    blocked_keywords.join("\n")
   end
 
-  def input_login
-    if File.file?('user_info/login_info.txt')
-      login_credentials = File.readlines('user_info/login_info.txt')
+  def input_user_info(folder_name)
+    if File.file?("#{folder_name}/login_info.txt")
+      login_credentials = File.readlines("#{folder_name}/login_info.txt")
       email = login_credentials[0]
       password = login_credentials[1]
 
       return [email, password]
     end
 
-    puts "Please enter your Glassdoor account email."
+    puts "Please enter your account email."
     print ">> ".chomp
     email = gets.chomp!
 
-    puts "Please enter your Glassdoor account password."
+    puts "Please enter your account password."
     puts "This will not give anyone access to your login credentials."
     print ">> ".chomp
     password = gets.chomp!
@@ -76,7 +111,7 @@ module IOStream
     to_save = gets.chomp!
 
     if to_save == 'yes'
-      login_info_file = File.new('user_info/login_info.txt', "w+")
+      login_info_file = File.new("#{folder_name}/login_info.txt", "w+")
       login_info_file.puts(email)
       login_info_file.puts(password)
     end
@@ -84,34 +119,9 @@ module IOStream
     [email, password]
   end
 
-  def input_name_email
-    if File.file?('user_info/user_info.txt')
-      user_info_file = File.readlines('user_info/user_info.txt')
-      name = user_info_file[0]
-      email = user_info_file[1]
-
-      return [name, email]
-    end
-
-    puts "Please enter your full name."
-    print ">> ".chomp
-    name = gets.chomp!
-
-    puts "Please enter your email."
-    print ">> ".chomp
-    email = gets.chomp!
-
-    user_info_file = File.new('user_info/user_info.txt', 'w+')
-    user_info_file.puts(name)
-    user_info_file.puts(email)
-    user_info_file.close
-
-    [name, email]
-  end
-
-  def input_coverletter
-    if File.file?('user_info/coverletter.txt')
-      coverletter_file = File.read_file('user_info/coverletter.txt')
+  def input_coverletter(folder_name)
+    if File.file?("#{folder_name}/coverletter.txt")
+      coverletter_file = File.read_file("#{folder_name}/coverletter.txt")
       return coverletter_file
     end
 
@@ -119,29 +129,21 @@ module IOStream
     print ">> ".chomp
     coverletter = gets.chomp!
 
-    coverletter_file = File.new('user_info/coverletter.txt', 'w+')
+    coverletter_file = File.new("#{folder_name}/coverletter.txt", 'w+')
     coverletter_file.puts(coverletter)
     coverletter_file.close
 
     coverletter
   end
 
-  def create_file
-    filename = "Summary.txt"
-    index = 1
+  def applied_jobs(folder_name)
+    applied_jobs_file = File.new("#{folder_name}/applied_jobs.txt", "w+")
+    applied_jobs_file.puts("Applied Jobs")
+    applied_jobs_file.puts("*********************************")
+    applied_jobs_file.puts("")
+    applied_jobs_file.close
 
-    while File.file?(filename)
-      filename = "#{"Summary_" + index.to_s + ".txt"}"
-      index += 1
-    end
-
-    summary_file = File.new(filename, "w+")
-    summary_file.puts("Results Summary")
-    summary_file.puts("*********************************")
-    summary_file.puts("")
-    summary_file.close
-
-    filename
+    applied_jobs_file
   end
 
   def append_file(filename, input_array)
